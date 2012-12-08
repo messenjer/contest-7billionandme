@@ -1,0 +1,9 @@
+{
+  "name": "contest-7billionandme",
+  "description": "Challenge : How many people will have the earth the dd/mm/yyyy at hh:mm based on the site 7Billion&Me website",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "express": "3.x"
+  }
+}
