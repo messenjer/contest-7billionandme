@@ -29,10 +29,10 @@ app.get('/population', function (request, response) {
 		
 		res.on('end',function() {
 			// Remove , from the data and cast to int
-			var count = parseInt(data.replace(/,/g,''),10);
-			var population = { 'timestamp' : new Date() , 'count' : count };
+			var population = parseInt(data.replace(/,/g,''),10);
+			var json = { 'timestamp' : new Date().getTime()/1000 , 'population' : population };
 			// Send json with response.json (set the correct mime-type header ...)
-			response.json(population);
+			response.json(json);
 		});
 
 	});
