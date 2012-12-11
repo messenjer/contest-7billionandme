@@ -8,7 +8,6 @@ Population = (function() {
     this.initialPopulation = null;
     this.currentPopulation = null;
     this.wantedDate = null;
-    this.wantedTimestamp = null;
     this.handlerList = {
       'compute': $('.app-compute'),
       'wantedDate': $('.app-wantedDate'),
@@ -16,19 +15,15 @@ Population = (function() {
       'currentPopulation': $('.app-currentPopulation')
     };
     this.handlerList['compute'].click(function(e) {
-      var wantedPopulation;
+      var wantedDate, wantedPopulation, wantedTimestamp;
       e.preventDefault();
-      wantedPopulation = _this.getWantedPopulation(_this.wantedTimestamp);
-      return _this.handlerList['wantedPopulation'].html(wantedPopulation);
+      wantedDate = _this.handlerList['wantedDate'].prop('value');
+      wantedDate = wantedDate.replace(/(\d{2})\/(\d{2})\/(\d{4})(.*)/, "$2/$1/$3$4");
+      wantedTimestamp = new Date(wantedDate).getTime() / 1000;
+      wantedPopulation = _this.getWantedPopulation(wantedTimestamp);
+      return _this.handlerList['wantedPopulation'].html(_this.formatNumber(wantedPopulation));
     });
   }
-
-  Population.prototype.setWantedDate = function(wantedDate) {
-    this.wantedDate = wantedDate;
-    this.wantedTimestamp = this.wantedDate.getTime() / 1000;
-    this.handlerList['wantedDate'].html(this.displayDate(this.wantedTimestamp));
-    return this;
-  };
 
   Population.prototype.getPopulation = function() {
     var _this = this;
@@ -38,7 +33,7 @@ Population = (function() {
       if (_this.initialPopulation === null) {
         _this.initialPopulation = _this.currentPopulation;
       }
-      _this.handlerList['currentPopulation'].html(_this.currentPopulation['population']);
+      _this.handlerList['currentPopulation'].html(_this.formatNumber(_this.currentPopulation['population']));
       callback = function() {
         return _this.getPopulation();
       };
@@ -57,21 +52,26 @@ Population = (function() {
       wantedPopulation = Math.floor(p1 + ((wantedTimestamp - t1) * growth));
       console.log('Population increase of ' + (p2 - p1) + ' people in ' + (t2 - t1));
       console.log('Growth is ' + growth);
+      console.log('Wanted date is ' + this.formatDate(wantedTimestamp));
       console.log('Population should be ' + wantedPopulation + '(+' + (wantedPopulation - p1) + ') in ' + (wantedTimestamp - t1) + ' seconds');
     }
     return wantedPopulation;
   };
 
-  Population.prototype.displayDate = function(timestamp) {
-    var date, day, dislayDate, hour, minute, month, second, year;
+  Population.prototype.formatDate = function(timestamp) {
+    var date, day, formatDate, hour, minute, month, second, year;
     date = new Date(timestamp * 1000);
     day = date.getDate() < 10 ? '0' + date.getDate() : date.getDate();
-    month = date.getMonth() + 1 < 10 ? '0' + date.getMonth() + 1 : date.getMonth();
+    month = date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1;
     year = date.getFullYear();
     hour = date.getHours() < 10 ? '0' + date.getHours() : date.getHours();
     minute = date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes();
     second = date.getSeconds() < 10 ? '0' + date.getSeconds() : date.getSeconds();
-    return dislayDate = "" + day + "/" + month + "/" + year + " " + hour + ":" + minute + ":" + second;
+    return formatDate = "" + day + "/" + month + "/" + year + " " + hour + ":" + minute + ":" + second;
+  };
+
+  Population.prototype.formatNumber = function(number) {
+    return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
 
   return Population;
@@ -82,5 +82,9 @@ $(function() {
   var population;
   population = new Population();
   population.getPopulation();
-  return population.setWantedDate(new Date(2012, 11, 17, 12, 0, 0));
+  $('input').datepicker({
+    format: 'dd/mm/yyyy hh:ii:ss',
+    weekStart: 1
+  });
+  return true;
 });

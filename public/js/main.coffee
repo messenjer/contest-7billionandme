@@ -5,7 +5,6 @@ class Population
         @initialPopulation = null
         @currentPopulation = null
         @wantedDate = null
-        @wantedTimestamp = null
 
         @handlerList = 
             'compute': $('.app-compute')
@@ -15,15 +14,12 @@ class Population
 
         @handlerList['compute'].click( (e) =>
             e.preventDefault()
-            wantedPopulation = @getWantedPopulation(@wantedTimestamp)
-            @handlerList['wantedPopulation'].html(wantedPopulation)
+            wantedDate = @handlerList['wantedDate'].prop('value');
+            wantedDate = wantedDate.replace( /(\d{2})\/(\d{2})\/(\d{4})(.*)/, "$2/$1/$3$4")
+            wantedTimestamp = new Date(wantedDate).getTime()/1000
+            wantedPopulation = @getWantedPopulation(wantedTimestamp)
+            @handlerList['wantedPopulation'].html(@formatNumber(wantedPopulation))
         )
-
-    setWantedDate: (@wantedDate) ->
-        @wantedTimestamp = @wantedDate.getTime()/1000
-        @handlerList['wantedDate'].html(@displayDate(@wantedTimestamp))
-        @
-
 
     getPopulation: ->
         
@@ -31,7 +27,7 @@ class Population
             @currentPopulation = data
             if @initialPopulation == null
                 @initialPopulation = @currentPopulation
-            @handlerList['currentPopulation'].html(@currentPopulation['population'])
+            @handlerList['currentPopulation'].html(@formatNumber(@currentPopulation['population']))
             callback = => @getPopulation()
             setTimeout callback, 5000
         )
@@ -47,23 +43,33 @@ class Population
             wantedPopulation = Math.floor(p1 + ( (wantedTimestamp-t1) * growth))
             console.log( 'Population increase of ' + (p2-p1) + ' people in ' + (t2-t1) )
             console.log( 'Growth is ' + growth)
+            console.log( 'Wanted date is ' + @formatDate(wantedTimestamp) )
             console.log( 'Population should be ' + wantedPopulation + '(+' + (wantedPopulation - p1) + ') in ' + (wantedTimestamp-t1) + ' seconds')
         return wantedPopulation
 
-    displayDate: (timestamp) ->
+    formatDate: (timestamp) ->
         
         date = new Date(timestamp*1000)
 
         day = if date.getDate() < 10 then '0' + date.getDate() else date.getDate()
-        month = if date.getMonth() + 1  < 10 then '0' + date.getMonth() + 1 else date.getMonth()
+        month = if date.getMonth() + 1  < 10 then '0' + (date.getMonth() + 1) else date.getMonth() + 1
         year = date.getFullYear()
         hour = if date.getHours() < 10 then '0' + date.getHours() else date.getHours()
         minute = if date.getMinutes() < 10 then '0' + date.getMinutes() else date.getMinutes()
         second = if date.getSeconds() < 10 then '0' + date.getSeconds() else date.getSeconds()
 
-        dislayDate =  "#{day}/#{month}/#{year} #{hour}:#{minute}:#{second}" 
+        formatDate =  "#{day}/#{month}/#{year} #{hour}:#{minute}:#{second}"
+
+    formatNumber : (number) ->
+        number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
 
 $ ->
     population = new Population()
     population.getPopulation()
-    population.setWantedDate(new Date(2012,11,17,12,0,0))
+
+    $('input').datepicker({
+        format: 'dd/mm/yyyy hh:ii:ss',
+        weekStart: 1
+    })
+
+    return true
